@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Form, Select, Button, Card, Radio, Typography } from 'antd';
+import { Form, Select, Button, Radio, Typography, Card } from 'antd';
 
 const { Text, Title } = Typography;
 const { Option } = Select;
@@ -32,8 +32,11 @@ const Project: React.FC = () => {
         // Presence of NCCL
         if (values.nccLesions === 'Yes') result *= 0.95;
 
+        // Jaw
+        if (values.jaw === 'Mandible') result *= 0.95; // Assuming ≤100% means 95%
+
         // Tooth Location
-        if (values.toothLocation === 'Mandible' || values.toothLocation === 'Premolar-Molar') result *= 0.95;
+        if (values.toothLocation === 'Premolar-Molar') result *= 0.95; // Assuming ≤100% means 95%
 
         // Tooth Malposition
         if (values.toothMalposition === 'Yes') result *= 0.95;
@@ -41,18 +44,22 @@ const Project: React.FC = () => {
         // Tobacco Smoking
         if (values.tobaccoSmoking === 'Yes') result *= 0.95;
 
+        // Interproximal Clinical Attachment Loss (CLA)
+        if (values.interproximalCLA === '>3mm') result *= 0.80;
+        else if (values.interproximalCLA === '≤3mm') result *= 1;
+
         setEstimation(result);
     };
 
     return (
         <div>
-            <Typography.Title style={{ textAlign: 'center' }} level={4}>Recession parameters</Typography.Title>
+            <Typography.Title style={{ textAlign: 'center' }} level={4}>Recession Parameters</Typography.Title>
             <Form
                 onFinish={calculateEstimation}
                 layout="vertical"
                 style={{
                     width: '100%',
-                    maxWidth: '600px',
+                    maxWidth: '900px',
                     margin: '0 auto',
                     backgroundColor: '#f5f5f5',
                     padding: '20px 40px',
@@ -62,42 +69,68 @@ const Project: React.FC = () => {
                     gap: '20px'
                 }}
             >
+                <div style={{
+                    flex: '1 1 100%',
+                    // maxWidth: '500px',
+                    display: 'flex',
+                    justifyContent: 'center'
+                }}>
+
+                    <Form.Item
+                        name="recessionType"
+                        label="Recession Type"
+                        tooltip="Cairo, 2011"
+                        rules={[{ required: true }]}
+                        style={{
+                            maxWidth: '400px',
+                        }}
+                    >
+                        <Select style={{ maxWidth: '100%', width: 300 }}>
+                            <Option value="RT 1">RT 1</Option>
+                            <Option value="RT 2">RT 2</Option>
+                            <Option value="RT 3">RT 3</Option>
+                        </Select>
+                    </Form.Item>
+                </div>
                 <div style={{ flex: '1 1 100%', display: 'flex', flexWrap: 'wrap', gap: '20px' }}>
+
                     <div style={{ flex: '1 1 45%', minWidth: '250px' }}>
-                        <Form.Item
-                            name="recessionType"
-                            label="Recession Type"
-                            rules={[{ required: true }]}
+                        <div
+                            style={{
+                                padding: '20px',
+                                width: '100%',
+                                backgroundColor: '#d0d0d0',
+                                borderRadius: '10px',
+                                marginBottom: '20px',
+                            }}
                         >
-                            <Select style={{ maxWidth: '100%' }}>
-                                <Option value="RT 1">RT 1</Option>
-                                <Option value="RT 2">RT 2</Option>
-                                <Option value="RT 3">RT 3</Option>
-                            </Select>
-                        </Form.Item>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '20px' }}>
+                                <div style={{ flex: '1 1 45%', minWidth: '250px' }}>
+                                    <Title level={5}>Recession Characteristics</Title>
+                                    <Form.Item
+                                        name="recessionDepth"
+                                        label="Recession Depth"
+                                        rules={[{ required: true }]}
+                                    >
+                                        <Select style={{ maxWidth: '100%' }}>
+                                            <Option value="≤4mm">≤4mm</Option>
+                                            <Option value=">4mm">{'>4mm'}</Option>
+                                        </Select>
+                                    </Form.Item>
 
-                        <Form.Item
-                            name="recessionDepth"
-                            label="Recession Depth"
-                            rules={[{ required: true }]}
-                        >
-                            <Select style={{ maxWidth: '100%' }}>
-                                <Option value="≤4mm">≤4mm</Option>
-                                <Option value=">4mm">{'>4mm'}</Option>
-                            </Select>
-                        </Form.Item>
-
-                        <Form.Item
-                            name="recessionWidth"
-                            label="Recession Width"
-                            rules={[{ required: true }]}
-                        >
-                            <Select style={{ maxWidth: '100%' }}>
-                                <Option value="Narrow">Narrow</Option>
-                                <Option value="Wide">Wide</Option>
-                            </Select>
-                        </Form.Item>
-
+                                    <Form.Item
+                                        name="recessionWidth"
+                                        label="Recession Width"
+                                        rules={[{ required: true }]}
+                                    >
+                                        <Select style={{ maxWidth: '100%' }}>
+                                            <Option value="Narrow">Narrow</Option>
+                                            <Option value="Wide">Wide</Option>
+                                        </Select>
+                                    </Form.Item>
+                                </div>
+                            </div>
+                        </div>
                         <Form.Item
                             name="papillaDimension"
                             label="Adjacent Papilla Dimension"
@@ -112,6 +145,7 @@ const Project: React.FC = () => {
                         <Form.Item
                             name="gingivalThickness"
                             label="Gingival Thickness"
+                            tooltip="Gingival thickness apical to the defect"
                             rules={[{ required: true }]}
                         >
                             <Select style={{ maxWidth: '100%' }}>
@@ -119,7 +153,20 @@ const Project: React.FC = () => {
                                 <Option value="Thin">Thin</Option>
                             </Select>
                         </Form.Item>
+
+                        <Form.Item
+                            name="interproximalCLA"
+                            label="Interproximal CLA"
+                            tooltip="Interproximal clinical attachment loss (Cairo et al 2012)"
+                            rules={[{ required: true }]}
+                        >
+                            <Select style={{ maxWidth: '100%' }}>
+                                <Option value="≤3mm">≤3mm</Option>
+                                <Option value=">3mm">{'>3mm'}</Option>
+                            </Select>
+                        </Form.Item>
                     </div>
+
                     <div style={{ flex: '1 1 45%', minWidth: '250px' }}>
                         <Form.Item
                             name="keratinizedTissueWidth"
@@ -144,13 +191,22 @@ const Project: React.FC = () => {
                         </Form.Item>
 
                         <Form.Item
-                            name="toothLocation"
-                            label="Tooth Location"
+                            name="jaw"
+                            label="Jaw"
                             rules={[{ required: true }]}
                         >
                             <Select style={{ maxWidth: '100%' }}>
                                 <Option value="Maxilla">Maxilla</Option>
                                 <Option value="Mandible">Mandible</Option>
+                            </Select>
+                        </Form.Item>
+
+                        <Form.Item
+                            name="toothLocation"
+                            label="Tooth Location"
+                            rules={[{ required: true }]}
+                        >
+                            <Select style={{ maxWidth: '100%' }}>
                                 <Option value="Incisor-Canine">Incisor-Canine</Option>
                                 <Option value="Premolar-Molar">Premolar-Molar</Option>
                             </Select>
